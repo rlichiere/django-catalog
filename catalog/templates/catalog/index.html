@@ -1,0 +1,58 @@
+{% extends 'catalog/base.html' %}
+{% load staticfiles %}
+{% load i18n static %}
+
+{% block title %}Index{% endblock %}
+{% block page-header %}Index{% endblock %}
+
+{% block page-body %}
+<!-- index body -->
+<div class="row">
+    <div class="col-sm-6">
+        <div class="row">
+            <div class="col-sm-12">Projets :
+                <ul>Actifs :
+                {% for project in projects %}
+                {% if project.status == 'active' %}
+                    <li><a href="{% url 'project' project.id %}">{{ project }}</a></li>
+                {% endif %}
+                {%  empty %}
+                    Pas de projets.
+                {% endfor %}
+                </ul>
+                <ul>Archivés :
+                {% for project in projects %}
+                {% if project.status == 'archive' %}
+                    <li><a href="{% url 'project' project.id %}">{{ project }}</a></li>
+                {% endif %}
+                {%  empty %}
+                    Pas de projets.
+                {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="col-sm-12">Participants :
+                <ul>
+                {% for participant in participants %}
+                    <li><a href="{% url 'participant' participant.id %}">{{ participant.user.first_name }} {{ participant.user.last_name }}</a></li>
+                {%  empty %}
+                    Pas de participants.
+                {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6">Capacités :
+        <ul>
+        {% for capacity in capacities %}
+            <li><a href="{% url 'capacity' capacity.id %}">{{ capacity }}</a></li>
+        {%  empty %}
+            Pas de capacités.
+        {% endfor %}
+        </ul>
+    </div>
+</div>
+<!-- /index body -->
+{% endblock %}

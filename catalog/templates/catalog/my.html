@@ -1,0 +1,108 @@
+{% extends 'catalog/base.html' %}
+{% load staticfiles %}
+{% load i18n static %}
+
+{% block title %}My{% endblock %}
+{% block page-header %}My{% endblock %}
+
+{% block page-body %}
+<!-- my body -->
+<div class="row">
+    <div class="col-sm-5">
+        Projets créés :<br /><br />
+        <ul>En cours :
+        {% for project in created_projects %}
+            {% if project.status == 'active' %}
+            <li>
+                <a href="{% url 'project' project.id %}">{{ project }}</a>
+                {% if my_projects_invitations|length > 0 %}
+                    <ul>Invitations :
+                    {% for invit in my_projects_invitations %}
+                        <li>
+                            <a href="{% url 'capacity' invit.capacity.id %}">{{ invit.capacity.label }}</a>
+                            : <a href="{% url 'participant' invit.participant.id %}">{{ invit.participant }}</a>
+                            - (<a href="#" onclick="if (confirm('Confirmer l\'annulation ?')) send_command('participation_invitation_canceled', {{ invit.id }}, '');">Annuler</a>)
+                        </li>
+                    {% empty %}
+                        Pas d'invitation.
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+                {% if my_projects_propositions|length > 0 %}
+                    <ul>Propositions :
+                    {% for prop in my_projects_propositions %}
+                        <li>
+                            <a href="{% url 'capacity' prop.capacity.id %}">{{ prop.capacity.label }}</a>
+                            : <a href="{% url 'participant' prop.participant.id %}">{{ prop.participant }}</a>
+                            - (<a href="#" onclick="if (confirm('Confirmer la validation ?')) send_command('participation_invitation_validated', {{ prop.id }}, '');">Valider</a>
+                            / <a href="#" onclick="if (confirm('Confirmer le refus ?')) send_command('participation_invitation_denied', {{ prop.id }}, '');">Refuser</a>)
+                        </li>
+                    {% empty %}
+                        Pas de proposition.
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            </li>
+            {% endif %}
+        {% empty %}
+            Pas de projets.
+        {% endfor %}
+        </ul>
+        <br />
+        <ul>Archivés :
+        {% for project in created_projects %}
+        {% if project.status == 'archive' %}
+            <li><a href="{% url 'project' project.id %}">{{ project }}</a></li>
+        {% endif %}
+        {% empty %}
+            Pas de projets.
+        {% endfor %}
+        </ul>
+    </div>
+    <div class="col-sm-4">
+        Participations effectives : {{ projects_participations.effective|length }}<br />
+        {% for project in projects_participations.effective %}
+            <a href="{% url 'project' project.id %}">{{ project.label }}</a> :
+            <ul>
+                {% for part in participations_effective %}
+                {% if part.project == project %}
+                    <li><a href="{% url 'capacity' part.capacity.id %}">{{ part.capacity.label }}</a></li>
+                {% endif %}
+                {% endfor %}
+            </ul>
+        {% endfor %}
+        <br />
+        Invitations : {{ projects_participations.invitations|length }}<br />
+        {% for project in projects_participations.invitations %}
+            <a href="{% url 'project' project.id %}">{{ project.label }}</a> :
+            <ul>
+            {% for part in participations_invitations %}
+                {% if part.project == project %}
+                <li>
+                    <a href="{% url 'capacity' part.capacity.id %}">{{ part.capacity.label }}</a>
+                    (<a href="#" onclick="if (confirm('Confirmer la validation ?')) send_command('participation_invitation_validated', {{ part.id }}, '');">Valider</a> /
+                    <a href="#" onclick="if (confirm('Confirmer le refus ?')) send_command('participation_invitation_denied', {{ part.id }}, '');">Refuser</a>)
+                </li>
+                {% endif %}
+            {% endfor %}
+            </ul>
+        {% endfor %}
+        <br />
+        Propositions : {{ projects_participations.propositions|length }}<br />
+        {% for project in projects_participations.propositions %}
+            <a href="{% url 'project' project.id %}">{{ project.label }}</a> :
+            <ul>
+            {% for part in participations_propositions %}
+            {% if part.project == project %}
+                <li>
+                    <a href="{% url 'capacity' part.capacity.id %}">{{ part.capacity.label }}</a>
+                     - (<a href="#" onclick="if (confirm('Confirmer l\'annulation ?')) send_command('participation_invitation_canceled', {{ part.id }}, '');">Annuler</a>)
+                </li>
+            {% endif %}
+            {% endfor %}
+            </ul>
+        {% endfor %}
+    </div>
+</div>
+<!-- /index body -->
+{% endblock %}

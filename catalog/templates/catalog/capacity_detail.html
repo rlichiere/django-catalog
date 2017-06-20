@@ -1,0 +1,29 @@
+{% extends 'catalog/base.html' %}
+{% load staticfiles %}
+{% load i18n static %}
+
+{% block title %}Capacité : {{ capacity.label }}{% endblock %}
+{% block page-header %}Capacité : {{ capacity.label }}{% endblock %}
+
+{% block page-body %}
+<!-- capacity_detail body -->
+<div class="row">
+    <div class="col-sm-6">
+        <ul>
+        {% for participant in participants %}
+            <li><a href="{% url 'participant' participant.id %}">{{ participant }}</a>
+            <ul>
+            {% for part in participations %}
+            {% if participant == part.participant and part.owner_validation and part.participant_validation %}
+                <li><a href="{% url 'project' part.project.id %}">{{ part.project.label}}</a></li>
+            {% endif %}
+            {% endfor %}
+            </ul>
+        <br />
+        </li>
+        {% endfor %}
+        </ul>
+    </div>
+</div>
+<!-- /capacity_detail body -->
+{% endblock %}

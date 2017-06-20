@@ -1,0 +1,70 @@
+{% extends 'catalog/base.html' %}
+{% load staticfiles %}
+{% load i18n static %}
+
+{% block title %}Participant : {{ participant }}{% endblock %}
+{% block page-header %}Participant : {{ participant }}{% endblock %}
+
+{% block page-body %}
+<!-- participant_detail body -->
+<div class="row">
+    <div class="col-sm-12">
+        Email : <a href="{{ participant.user.email }}">{{ participant.user.email }}</a><br /><br />
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-6">Capacités : {{ capacities|length }}<br />
+        <ul>
+            {% for capacity in capacities %}
+                <li><a href="{% url 'capacity' capacity.id %}">{{ capacity.label }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="col-sm-6">Participations : {{ participations_effective|length }}<br />
+        <ul>
+            {% for project in projects_participations.effective %}
+                <li><a href="{% url 'project' project.id %}">{{ project.label }}</a>
+                <ul>
+                    {% for part in participations_effective %}
+                        {% if part.project == project %}
+                            <li><a href="{% url 'capacity' part.capacity.id %}">{{ part.capacity.label }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </li>
+            {% endfor %}
+        </ul>
+        {%  if request.user.is_superuser %}
+        Invitations : {{ participations_invitations|length }}
+        <ul>
+            {% for project in projects_participations.invitations %}
+                <li><a href="{% url 'project' project.id %}">{{ project.label }}</a>
+                <ul>
+                    {% for part in participations_invitations %}
+                        {% if part.project == project %}
+                        <li>{{ part.capacity.label }}</li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </li>
+            {% endfor %}
+        </ul>
+        Propositions : {{ participations_propositions|length }}
+        <ul>
+            {% for project in projects_participations.propositions %}
+                <li><a href="{% url 'project' project.id %}">{{ project.label }}</a>
+                <ul>
+                    {% for part in participations_propositions %}
+                        {% if part.project == project %}
+                        <li>{{ part.capacity.label }}</li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+</div>
+<!-- /participant_detail body -->
+{% endblock %}

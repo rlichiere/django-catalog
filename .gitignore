@@ -1,0 +1,3 @@
+.idea/*
+catalog/core/config.py
+db.sqlite3
