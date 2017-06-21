@@ -219,7 +219,7 @@ class Command(BaseCommand):
                                    creator=creator, status=project['status'], created=datetime.now())
                     proj.save()
                     self.transaction['projects'].append(proj)
-                print('project: %s' % proj.name)
+                    print('project: %s' % proj.name)
 
             print('\nPARTICIPATIONS')
             for participation in participations:
@@ -237,9 +237,9 @@ class Command(BaseCommand):
                 part = Participation(project=project, participant=participant, capacity=capacity,
                                      owner_validation=owner_validation, participant_validation=part_validation)
                 part.save()
-                self.transaction['projects'].append(part)
+                self.transaction['participations'].append(part)
                 print('participation: from [%s] on [%s] as [%s]'
-                      % (part.participant.user.username, proj.name, part.capacity.name))
+                      % (part.participant.user.username, project.name, part.capacity.name))
 
         except Exception as e:
             print('command error : %s' % e)
