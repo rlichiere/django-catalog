@@ -188,6 +188,7 @@ class Command(BaseCommand):
             self.transaction['capacities'] = list()
             self.transaction['participants'] = list()
             self.transaction['projects'] = list()
+            self.transaction['participations'] = list()
 
             print('\nCAPACITIES')
             for capacity in capacities:
