@@ -6,30 +6,38 @@
 {% block page-header %}Projets{% endblock %}
 
 {% block page-body %}
-<!-- projects body -->
-<div class="row">
-    <div class="col-lg-12">
-        Projets en cours :
-        <ul>
-        {% for project in projects %}
-            {% if project.status == 'active' %}
-            <li><a href="{% url 'project' project.id %}">{{ project }}</a></li>
-            {% endif %}
-        {%  empty %}
-            Pas de projets.
-        {% endfor %}
-        </ul>
-        Projets archivés :
-        <ul>
-        {% for project in projects %}
-            {% if project.status == 'archive' %}
-            <li><a href="{% url 'project' project.id %}">{{ project }}</a></li>
-            {% endif %}
-        {%  empty %}
-            Pas de projets.
-        {% endfor %}
-        </ul>
+
+    <div class="col-xs-12 col-sm-10 col-lg-5">
+        <div class="panel panel-default">
+            <div class="panel-header">Projets en cours :</div>
+            <div class="panel-body">
+                <ul>
+                {% for project in projects %}
+                    {% if project.status == 'active' %}
+                    <li><a href="{% url 'project' project.id %}">{{ project }}</a></li>
+                    {% endif %}
+                {%  empty %}
+                    Pas de projets.
+                {% endfor %}
+                </ul>
+            </div>
+        </div>
     </div>
-</div>
-<!-- /projects body -->
+    <div class="col-xs-12 col-sm-10 col-lg-5">
+        <div class="panel panel-default">
+            <div class="panel-header">Projets archivés :</div>
+            <div class="panel-body">
+                <ul>
+                {% for project in projects %}
+                    {% if project.status == 'archive' %}
+                    <li><a href="{% url 'project' project.id %}">{{ project }}</a></li>
+                    {% endif %}
+                {%  empty %}
+                    Pas de projets.
+                {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
 {% endblock %}

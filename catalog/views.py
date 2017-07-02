@@ -61,8 +61,8 @@ class ParticipantDetailView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         request = self.request
         participant = Participant.objects.get(id=self.kwargs['pk'])
-        capacities = participant.capacities.all()
-        print('capacities=%s' % capacities)
+        capacities_selected = participant.capacities.all()
+        print('capacities=%s' % capacities_selected)
         if participant is not None:
             parts = Participation.objects.filter(participant=participant.id)\
                 .order_by('capacity__label', 'participant__user__first_name', 'participant__user__last_name')
@@ -74,11 +74,14 @@ class ParticipantDetailView(LoginRequiredMixin, TemplateView):
             parts_effective = list()
             parts_invitations = list()
             parts_propositions = list()
+            capacities_effective = list()
             for part in parts:
                 if part.owner_validation and part.participant_validation:
                     if part.project not in projects_parts['effective']:
                         projects_parts['effective'].append(part.project)
                         parts_effective.append(part)
+                        if not part.capacity in capacities_effective:
+                            capacities_effective.append(part.capacity)
                 if part.owner_validation and not part.participant_validation:
                     if part.project not in projects_parts['invitations']:
                         projects_parts['invitations'].append(part.project)
@@ -91,7 +94,8 @@ class ParticipantDetailView(LoginRequiredMixin, TemplateView):
             result = dict()
             result['request'] = request
             result['participant'] = participant
-            result['capacities'] = capacities
+            result['capacities_selected'] = capacities_selected
+            result['capacities_effective'] = capacities_effective
             result['projects'] = projects
             result['participations'] = parts
             result['projects_participations'] = projects_parts
@@ -109,18 +113,54 @@ class CapacityDetailView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         capacity = Capacity.objects.get(id=self.kwargs['pk'])
+        effective_capacities = dict()
+        selected_capacities = dict()
+        invited_capacities = dict()
+        purposed_capacities = dict()
         if capacity is not None:
             parts = Participation.objects.filter(capacity=capacity.id)\
                 .order_by('capacity__label', 'participant__user__first_name', 'participant__user__last_name')
-            participations = list()
-            participants = list()
+            effective_participations = list()
+            effective_participants = list()
+            selected_participations = list()
+            selected_participants = list()
+            invited_participations = list()
+            invited_participants = list()
+            purposed_participations = list()
+            purposed_participants = list()
             for part in parts:
                 if part.owner_validation and part.participant_validation:
-                    if part.participant not in participants:
-                        participants.append(part.participant)
-                    participations.append(part)
+                    if part.participant not in effective_participants:
+                        effective_participants.append(part.participant)
+                        effective_participations.append(part)
+                elif part.owner_validation and not part.participant_validation:
+                    if part.participant not in invited_participants:
+                        invited_participants.append(part.participant)
+                        invited_participations.append(part)
+                elif (not part.owner_validation) and part.participant_validation:
+                    if part.participant not in purposed_participants:
+                        purposed_participants.append(part.participant)
+                        purposed_participations.append(part)
+            effective_capacities['participations'] = effective_participations
+            effective_capacities['participants'] = effective_participants
+            invited_capacities['participations'] = invited_participations
+            invited_capacities['participants'] = invited_participants
+            purposed_capacities['participations'] = purposed_participations
+            purposed_capacities['participants'] = purposed_participants
+
+            participants = Participant.objects.all()
+            for participant in participants:
+                part_caps = participant.capacities.filter(id=capacity.id)
+                if part_caps.count() > 0:
+                    selected_participations.append(part_caps)
+                    selected_participants.append(participant)
+            selected_capacities['participations'] = selected_participations
+            selected_capacities['participants'] = selected_participants
+
             return {'capacity': capacity,
-                    'participants': participants, 'participations': participations}
+                    'effective_capacities': effective_capacities, 'invited_capacities': invited_capacities,
+                    'purposed_capacities': purposed_capacities, 'selected_capacities': selected_capacities,
+                    }
         else:
             raise Http404
 
@@ -270,17 +310,26 @@ class CommandView(LoginRequiredMixin, View):
         elif command == 'participants_by_capacity':
             parts = Participant.objects.all().order_by('user__first_name', 'user__last_name')
             participants_data = list()
-            if param_2 == 'on':
+            if param_2 == 'selected':
                 for part in parts:
                     part_name = '%s %s' % (part.user.first_name, part.user.last_name)
                     part_caps = part.capacities.filter(id=param_1)
                     if part_caps.count() > 0:
                         participants_data.append({'id': part.id, 'label': part_name})
-
-            participants_data.append({'id': '', 'label': '------'})
-            for part in parts:
-                part_name = '%s %s' % (part.user.first_name, part.user.last_name)
-                if not {'id': part.id, 'label': part_name} in participants_data:
+            elif param_2 == 'effective':
+                for part in parts:
+                    part_name = '%s %s' % (part.user.first_name, part.user.last_name)
+                    participations = Participation.objects.filter(
+                            participant=part,
+                            owner_validation=True,
+                            participant_validation=True,
+                            capacity=param_1
+                    )
+                    if participations.count() > 0:
+                        participants_data.append({'id': part.id, 'label': part_name})
+            elif param_2 == 'off':
+                for part in parts:
+                    part_name = '%s %s' % (part.user.first_name, part.user.last_name)
                     participants_data.append({'id': part.id, 'label': part_name})
             result = dict()
             result['command'] = command
