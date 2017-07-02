@@ -6,19 +6,16 @@
 {% block page-header %}Participant : {{ participant }}{% endblock %}
 
 {% block page-body %}
-<!-- participant_detail body -->
-<div class="row">
-    <div class="col-sm-11">
-        <div class="panel panel-default">
-            <div class="panel-header">Informations générales :</div>
-            <div class="panel-body">
-                Email : <a href="{{ participant.user.email }}">{{ participant.user.email }}</a><br /><br />
-            </div>
+
+<div class="col-sm-10">
+    <div class="panel panel-default">
+        <div class="panel-header">Informations générales :</div>
+        <div class="panel-body">
+            Email : <a href="{{ participant.user.email }}">{{ participant.user.email }}</a><br /><br />
         </div>
     </div>
 </div>
-<div class="row">
-<div class="col-lg-3 col-sm-6">
+<div class="col-sm-5">
     <div class="panel panel-default">
         <div class="panel-header">Capacités :</div>
         <div class="panel-body">
@@ -43,7 +40,7 @@
         </div>
     </div>
 </div>
-<div class="col-lg-3 col-sm-6">
+<div class="col-sm-5">
     <div class="panel panel-default">
         <div class="panel-header">Participations : {{ participations_effective|length }}</div>
         <div class="panel-body">
@@ -65,7 +62,7 @@
 </div>
 {%  if request.user.is_superuser %}
     {% if participations_invitations|length > 0 %}
-        <div class="col-lg-3 col-sm-6">
+        <div class="col-sm-5">
             <div class="panel panel-default">
                 <div class="panel-header">Invitations : {{ participations_invitations|length }}</div>
                 <div class="panel-body">
@@ -87,7 +84,7 @@
         </div>
     {% endif %}
     {% if participations_propositions|length > 0 %}
-    <div class="col-lg-3 col-sm-6">
+    <div class="col-sm-5">
         <div class="panel panel-default">
             <div class="panel-header">Propositions : {{ participations_propositions|length }}</div>
             <div class="panel-body">
@@ -109,5 +106,5 @@
     </div>
     {% endif %}
 {% endif %}
-</div>
+
 {% endblock %}
