@@ -15,12 +15,18 @@ class Capacity(models.Model):
     def __unicode__(self):
         return self.label
 
+    def __str__(self):
+        return self.label
+
 
 class Participant(models.Model):
     user = models.OneToOneField(User)
     capacities = models.ManyToManyField(Capacity)
 
     def __unicode__(self):
+        return '%s %s' % (self.user.first_name, self.user.last_name)
+
+    def __str__(self):
         return '%s %s' % (self.user.first_name, self.user.last_name)
 
 
@@ -34,6 +40,9 @@ class Project(models.Model):
     def __unicode__(self):
         return self.label
 
+    def __str__(self):
+        return self.label
+
 
 class Participation(models.Model):
     project = models.ForeignKey(Project)
@@ -43,6 +52,10 @@ class Participation(models.Model):
     participant_validation = models.BooleanField(default=False)
 
     def __unicode__(self):
+        return '%s - %s - %s (o:%s, p:%s' % (self.project, self.capacity, self.participant,
+                                             self.owner_validation, self.participant_validation)
+
+    def __str__(self):
         return '%s - %s - %s (o:%s, p:%s' % (self.project, self.capacity, self.participant,
                                              self.owner_validation, self.participant_validation)
 
@@ -61,11 +74,17 @@ class Location(models.Model):
     def __unicode__(self):
         return '%s' % self.label
 
+    def __str__(self):
+        return '%s' % self.label
+
 
 class AccessoryCategory(models.Model):
     label = models.CharField(max_length=200)
 
     def __unicode__(self):
+        return '%s' % self.label
+
+    def __str__(self):
         return '%s' % self.label
 
     class Meta:
@@ -78,6 +97,9 @@ class Image(models.Model):
     path = models.CharField(max_length=200, null=True)
 
     def __unicode__(self):
+        return '%s' % self.label
+
+    def __str__(self):
         return '%s' % self.label
 
 
@@ -95,11 +117,17 @@ class Object(models.Model):
     def __unicode__(self):
         return '%s' % self.label
 
+    def __str__(self):
+        return '%s' % self.label
+
 
 class Decor(Object):
     type = 'Decor'
 
     def __unicode__(self):
+        return '%s' % self.label
+
+    def __str__(self):
         return '%s' % self.label
 
 
@@ -109,12 +137,18 @@ class Actor(Object):
     def __unicode__(self):
         return '%s' % self.label
 
+    def __str__(self):
+        return '%s' % self.label
+
 
 class Accessory(Object):
     category = models.ManyToManyField(AccessoryCategory)
     type = 'Accessory'
 
     def __unicode__(self):
+        return '%s' % self.label
+
+    def __str__(self):
         return '%s' % self.label
 
     class Meta:
