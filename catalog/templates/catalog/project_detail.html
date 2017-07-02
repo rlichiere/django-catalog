@@ -9,8 +9,8 @@
 <div class="row">
     <div class="col-sm-10">
         <div class="panel panel-default">
-        <div class="panel-header">Informations générales</div>
-        <div class="panel-body">
+            <div class="panel-header">Informations générales</div>
+            <div class="panel-body">
                 Créé par : <b>{{ project.creator.first_name }} {{ project.creator.last_name }}</b>, le <b>{{ project.created }}</b><br />
                 <br />
                 Statut : <b>{{ project.status }}</b>
@@ -52,7 +52,7 @@
                                 {% if not part.owner_validation and part.participant_validation %}
                                     <li>
                                         <a href="{% url 'participant' part.participant.id %}">{{ part.participant }}</a>
-                                        {% if part.project.creator == request.user %}
+                                        {% if part.project.creator == request.user and part.project.status != 'archive' %}
                                             - (<a href="#" onclick="if (confirm('Confirmer la validation ?')) send_command('participation_proposition_validated', {{ part.id }}, '');">Valider</a>
                                              /
                                             <a href="#" onclick="if (confirm('Confirmer le refus ?')) send_command('participation_proposition_denied', {{ part.id }}, '');">Refuser</a>)
@@ -68,7 +68,7 @@
                                 {% if part.owner_validation and not part.participant_validation %}
                                     <li>
                                         <a href="{% url 'participant' part.participant.id %}">{{ part.participant }}</a>
-                                        {% if project.creator == request.user %}
+                                        {% if project.creator == request.user and project.status != 'archive' %}
                                          - (<a href="#" onclick="if (confirm('Confirmer l\'annulation ?')) send_command('participation_proposition_denied', {{ part.id }}, '');">Annuler</a>)
                                         {% else %}
                                          - Invité

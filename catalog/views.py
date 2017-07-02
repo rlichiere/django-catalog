@@ -109,18 +109,54 @@ class CapacityDetailView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         capacity = Capacity.objects.get(id=self.kwargs['pk'])
+        effective_capacities = dict()
+        selected_capacities = dict()
+        invited_capacities = dict()
+        purposed_capacities = dict()
         if capacity is not None:
             parts = Participation.objects.filter(capacity=capacity.id)\
                 .order_by('capacity__label', 'participant__user__first_name', 'participant__user__last_name')
-            participations = list()
-            participants = list()
+            effective_participations = list()
+            effective_participants = list()
+            selected_participations = list()
+            selected_participants = list()
+            invited_participations = list()
+            invited_participants = list()
+            purposed_participations = list()
+            purposed_participants = list()
             for part in parts:
                 if part.owner_validation and part.participant_validation:
-                    if part.participant not in participants:
-                        participants.append(part.participant)
-                    participations.append(part)
+                    if part.participant not in effective_participants:
+                        effective_participants.append(part.participant)
+                        effective_participations.append(part)
+                elif part.owner_validation and not part.participant_validation:
+                    if part.participant not in invited_participants:
+                        invited_participants.append(part.participant)
+                        invited_participations.append(part)
+                elif (not part.owner_validation) and part.participant_validation:
+                    if part.participant not in purposed_participants:
+                        purposed_participants.append(part.participant)
+                        purposed_participations.append(part)
+            effective_capacities['participations'] = effective_participations
+            effective_capacities['participants'] = effective_participants
+            invited_capacities['participations'] = invited_participations
+            invited_capacities['participants'] = invited_participants
+            purposed_capacities['participations'] = purposed_participations
+            purposed_capacities['participants'] = purposed_participants
+
+            participants = Participant.objects.all()
+            for participant in participants:
+                part_caps = participant.capacities.filter(id=capacity.id)
+                if part_caps.count() > 0:
+                    selected_participations.append(part_caps)
+                    selected_participants.append(participant)
+            selected_capacities['participations'] = selected_participations
+            selected_capacities['participants'] = selected_participants
+
             return {'capacity': capacity,
-                    'participants': participants, 'participations': participations}
+                    'effective_capacities': effective_capacities, 'invited_capacities': invited_capacities,
+                    'purposed_capacities': purposed_capacities, 'selected_capacities': selected_capacities,
+                    }
         else:
             raise Http404
 

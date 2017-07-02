@@ -6,24 +6,102 @@
 {% block page-header %}Capacité : {{ capacity.label }}{% endblock %}
 
 {% block page-body %}
-<!-- capacity_detail body -->
-<div class="row">
-    <div class="col-sm-6">
-        <ul>
-        {% for participant in participants %}
-            <li><a href="{% url 'participant' participant.id %}">{{ participant }}</a>
+
+<div class="col-sm-6 col-lg-3">
+    <div class="panel panel-default">
+        <div class="panel-header">Indicatives :</div>
+        <div class="panel-body">
+        {% if selected_capacities.participants|length > 0 %}
             <ul>
-            {% for part in participations %}
-            {% if participant == part.participant and part.owner_validation and part.participant_validation %}
-                <li><a href="{% url 'project' part.project.id %}">{{ part.project.label}}</a></li>
-            {% endif %}
+            {% for participant in selected_capacities.participants %}
+                <li><a href="{% url 'participant' participant.id %}">{{ participant }}</a></li>
             {% endfor %}
             </ul>
-        <br />
-        </li>
-        {% endfor %}
-        </ul>
+        {% else %}
+            Pas de capacités sélectionnées par les participants.
+        {% endif %}
+        </div>
     </div>
 </div>
-<!-- /capacity_detail body -->
+<div class="col-sm-6 col-lg-3">
+    <div class="panel panel-default">
+        <div class="panel-header">Effectives :</div>
+        <div class="panel-body">
+        {% if purposed_capacities.participations|length > 0 %}
+            <ul>
+            {% for participant in effective_capacities.participants %}
+                <li><a href="{% url 'participant' participant.id %}">{{ participant }}</a>
+                <ul>
+                {% for part in effective_capacities.participations %}
+                {% if participant == part.participant and part.owner_validation and part.participant_validation%}
+                    <li>
+                        <a href="{% url 'project' part.project.id %}">{{ part.project.label}}</a>
+                        {% if part.project.status == 'active' %}
+                          (actif)
+                        {% else %}
+                          (archive)
+                        {% endif %}
+                    </li>
+                {% endif %}
+                {% endfor %}
+                </ul>
+            <br />
+            </li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            Pas de participations effectives.
+        {% endif %}
+        </div>
+    </div>
+</div>
+{%  if request.user.is_superuser %}
+    <div class="col-sm-6 col-lg-3">
+        <div class="panel panel-default">
+            <div class="panel-header">Des participants se proposent :</div>
+            <div class="panel-body">
+            {% if purposed_capacities.participations|length > 0 %}
+                <ul>
+                {% for participant in purposed_capacities.participants %}
+                    <li><a href="{% url 'participant' participant.id %}">{{ participant }}</a>
+                    <ul>
+                    {% for part in purposed_capacities.participations %}
+                        <li><a href="{% url 'project' part.project.id %}">{{ part.project.label}}</a></li>
+                    {% endfor %}
+                    </ul>
+                <br />
+                </li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                Pas de proposition de la part des participants.
+            {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="panel panel-default">
+            <div class="panel-header">Des participants sont invités :</div>
+            <div class="panel-body">
+            {% if invited_capacities.participations|length > 0 %}
+                <ul>
+                {% for participant in invited_capacities.participants %}
+                    <li><a href="{% url 'participant' participant.id %}">{{ participant }}</a>
+                    <ul>
+                    {% for part in invited_capacities.participations %}
+                        <li><a href="{% url 'project' part.project.id %}">{{ part.project.label}}</a></li>
+                    {% endfor %}
+                    </ul>
+                <br />
+                </li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                    Pas de participants invités.
+            {% endif %}
+            </div>
+        </div>
+    </div>
+{% endif %}
+
 {% endblock %}
