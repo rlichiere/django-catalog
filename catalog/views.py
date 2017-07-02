@@ -270,17 +270,26 @@ class CommandView(LoginRequiredMixin, View):
         elif command == 'participants_by_capacity':
             parts = Participant.objects.all().order_by('user__first_name', 'user__last_name')
             participants_data = list()
-            if param_2 == 'on':
+            if param_2 == 'selected':
                 for part in parts:
                     part_name = '%s %s' % (part.user.first_name, part.user.last_name)
                     part_caps = part.capacities.filter(id=param_1)
                     if part_caps.count() > 0:
                         participants_data.append({'id': part.id, 'label': part_name})
-
-            participants_data.append({'id': '', 'label': '------'})
-            for part in parts:
-                part_name = '%s %s' % (part.user.first_name, part.user.last_name)
-                if not {'id': part.id, 'label': part_name} in participants_data:
+            elif param_2 == 'effective':
+                for part in parts:
+                    part_name = '%s %s' % (part.user.first_name, part.user.last_name)
+                    participations = Participation.objects.filter(
+                            participant=part,
+                            owner_validation=True,
+                            participant_validation=True,
+                            capacity=param_1
+                    )
+                    if participations.count() > 0:
+                        participants_data.append({'id': part.id, 'label': part_name})
+            elif param_2 == 'off':
+                for part in parts:
+                    part_name = '%s %s' % (part.user.first_name, part.user.last_name)
                     participants_data.append({'id': part.id, 'label': part_name})
             result = dict()
             result['command'] = command
