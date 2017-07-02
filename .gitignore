@@ -1,3 +1,4 @@
 .idea/*
 catalog/core/config_private.py
 *.sqlite3
+private.yml
