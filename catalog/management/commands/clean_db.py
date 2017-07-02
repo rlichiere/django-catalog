@@ -12,18 +12,43 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
 
         try:
-            for participation in Participation.objects.all():
-                participation.delete()
-            for project in Project.objects.all():
-                project.delete()
-            for participant in Participant.objects.all():
-                participant.delete()
-            for user in User.objects.all():
-                if user.username != 'admin':
-                    user.delete()
-            for capacity in Capacity.objects.all():
-                capacity.delete()
-
+            # main base data
+            self.delete_items(Participation.objects.all())
+            self.delete_items(Project.objects.all())
+            self.delete_items(Capacity.objects.all())
         except Exception as e:
-            print('command error : %s' % e)
+            print('main base data error : %s' % e)
+
+        try:
+            # objects : base data
+            self.delete_items(Decor.objects.all())
+            self.delete_items(Actor.objects.all())
+            self.delete_items(Accessory.objects.all())
+        except Exception as e:
+            print('objects : base data error : %s' % e)
+
+        try:
+            # objects : root data
+            self.delete_items(Location.objects.all())
+            self.delete_items(Image.objects.all())
+            # self.delete_items(Object.objects.all())
+            self.delete_items(AccessoryCategory.objects.all())
+        except Exception as e:
+            print('objects : root data error : %s' % e)
+
+        try:
+            # main root data
+            self.delete_items(Participant.objects.all())
+            self.delete_items(User.objects.all(), 'admin')
+        except Exception as e:
+            print('main root data error : %s' % e)
+
         return None
+
+    def delete_items(self, items, except_key=None):
+        print('delete: %s items of type %s ' % (items.count(), type(items.first())))
+        for item in items:
+            if except_key is not None:
+                if item.username == except_key:
+                    continue
+            item.delete()

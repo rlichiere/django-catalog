@@ -1,7 +1,7 @@
 import json
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponseRedirect, HttpResponse, Http404
-from django.http import HttpResponse
+from django.db.models import Q
+from django.http import Http404, HttpResponse
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -50,7 +50,7 @@ class ProjectDetailView(LoginRequiredMixin, TemplateView):
             capacities = Capacity.objects.all()
             participants = Participant.objects.all()
             return {'project': project, 'capacities': capacities, 'participants': participants,
-                    'project_capacities': project_capacities, 'participations': participations}
+                    'project_capacities': project_capacities, 'participations': participations, 'request': self.request}
         else:
             raise Http404
 
@@ -61,8 +61,8 @@ class ParticipantDetailView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         request = self.request
         participant = Participant.objects.get(id=self.kwargs['pk'])
-        capacities = participant.capacities.all()
-        print('capacities=%s' % capacities)
+        capacities_selected = participant.capacities.all()
+        print('capacities=%s' % capacities_selected)
         if participant is not None:
             parts = Participation.objects.filter(participant=participant.id)\
                 .order_by('capacity__label', 'participant__user__first_name', 'participant__user__last_name')
@@ -74,11 +74,14 @@ class ParticipantDetailView(LoginRequiredMixin, TemplateView):
             parts_effective = list()
             parts_invitations = list()
             parts_propositions = list()
+            capacities_effective = list()
             for part in parts:
                 if part.owner_validation and part.participant_validation:
                     if part.project not in projects_parts['effective']:
                         projects_parts['effective'].append(part.project)
                         parts_effective.append(part)
+                        if not part.capacity in capacities_effective:
+                            capacities_effective.append(part.capacity)
                 if part.owner_validation and not part.participant_validation:
                     if part.project not in projects_parts['invitations']:
                         projects_parts['invitations'].append(part.project)
@@ -91,7 +94,8 @@ class ParticipantDetailView(LoginRequiredMixin, TemplateView):
             result = dict()
             result['request'] = request
             result['participant'] = participant
-            result['capacities'] = capacities
+            result['capacities_selected'] = capacities_selected
+            result['capacities_effective'] = capacities_effective
             result['projects'] = projects
             result['participations'] = parts
             result['projects_participations'] = projects_parts
@@ -109,18 +113,54 @@ class CapacityDetailView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         capacity = Capacity.objects.get(id=self.kwargs['pk'])
+        effective_capacities = dict()
+        selected_capacities = dict()
+        invited_capacities = dict()
+        purposed_capacities = dict()
         if capacity is not None:
             parts = Participation.objects.filter(capacity=capacity.id)\
                 .order_by('capacity__label', 'participant__user__first_name', 'participant__user__last_name')
-            participations = list()
-            participants = list()
+            effective_participations = list()
+            effective_participants = list()
+            selected_participations = list()
+            selected_participants = list()
+            invited_participations = list()
+            invited_participants = list()
+            purposed_participations = list()
+            purposed_participants = list()
             for part in parts:
                 if part.owner_validation and part.participant_validation:
-                    if part.participant not in participants:
-                        participants.append(part.participant)
-                    participations.append(part)
+                    if part.participant not in effective_participants:
+                        effective_participants.append(part.participant)
+                        effective_participations.append(part)
+                elif part.owner_validation and not part.participant_validation:
+                    if part.participant not in invited_participants:
+                        invited_participants.append(part.participant)
+                        invited_participations.append(part)
+                elif (not part.owner_validation) and part.participant_validation:
+                    if part.participant not in purposed_participants:
+                        purposed_participants.append(part.participant)
+                        purposed_participations.append(part)
+            effective_capacities['participations'] = effective_participations
+            effective_capacities['participants'] = effective_participants
+            invited_capacities['participations'] = invited_participations
+            invited_capacities['participants'] = invited_participants
+            purposed_capacities['participations'] = purposed_participations
+            purposed_capacities['participants'] = purposed_participants
+
+            participants = Participant.objects.all()
+            for participant in participants:
+                part_caps = participant.capacities.filter(id=capacity.id)
+                if part_caps.count() > 0:
+                    selected_participations.append(part_caps)
+                    selected_participants.append(participant)
+            selected_capacities['participations'] = selected_participations
+            selected_capacities['participants'] = selected_participants
+
             return {'capacity': capacity,
-                    'participants': participants, 'participations': participations}
+                    'effective_capacities': effective_capacities, 'invited_capacities': invited_capacities,
+                    'purposed_capacities': purposed_capacities, 'selected_capacities': selected_capacities,
+                    }
         else:
             raise Http404
 
@@ -147,18 +187,22 @@ class MyView(LoginRequiredMixin, TemplateView):
             .order_by('capacity__label', 'participant__user__first_name', 'participant__user__last_name')
         for part in parts:
             if part.participant.user == self.request.user:
+                if part.project.label == 'Star Truc':
+                    print('%s, o_v:%s, p_v:%s, cap:%s' % (
+                        part.project, part.owner_validation, part.participant_validation, part.capacity)
+                          )
                 if part.owner_validation and part.participant_validation:
                     if part.project not in projects_parts['effective']:
                         projects_parts['effective'].append(part.project)
-                        parts_effective.append(part)
+                    parts_effective.append(part)
                 if part.owner_validation and not part.participant_validation:
                     if part.project not in projects_parts['invitations']:
                         projects_parts['invitations'].append(part.project)
-                        parts_invitations.append(part)
+                    parts_invitations.append(part)
                 if (not part.owner_validation) and part.participant_validation:
                     if part.project not in projects_parts['propositions']:
                         projects_parts['propositions'].append(part.project)
-                        parts_propositions.append(part)
+                    parts_propositions.append(part)
 
             elif part.project.creator == self.request.user:
                 if part.owner_validation and not part.participant_validation:
@@ -177,9 +221,14 @@ class MyView(LoginRequiredMixin, TemplateView):
         result['participations_effective'] = parts_effective
         result['participations_invitations'] = parts_invitations
         result['participations_propositions'] = parts_propositions
+        print('len participations_propositions : %s' % len(result['participations_propositions']))
         result['my_projects'] = my_projects
         result['my_projects_invitations'] = my_projects_invitations
         result['my_projects_propositions'] = my_projects_propositions
+
+        my_objects = Object.objects.filter(owner=Participant.objects.filter(user=self.request.user))
+        result['my_objects'] = my_objects
+
         return result
 
 
@@ -261,17 +310,26 @@ class CommandView(LoginRequiredMixin, View):
         elif command == 'participants_by_capacity':
             parts = Participant.objects.all().order_by('user__first_name', 'user__last_name')
             participants_data = list()
-            if param_2 == 'on':
+            if param_2 == 'selected':
                 for part in parts:
                     part_name = '%s %s' % (part.user.first_name, part.user.last_name)
                     part_caps = part.capacities.filter(id=param_1)
                     if part_caps.count() > 0:
                         participants_data.append({'id': part.id, 'label': part_name})
-
-            participants_data.append({'id': '', 'label': '------'})
-            for part in parts:
-                part_name = '%s %s' % (part.user.first_name, part.user.last_name)
-                if not {'id': part.id, 'label': part_name} in participants_data:
+            elif param_2 == 'effective':
+                for part in parts:
+                    part_name = '%s %s' % (part.user.first_name, part.user.last_name)
+                    participations = Participation.objects.filter(
+                            participant=part,
+                            owner_validation=True,
+                            participant_validation=True,
+                            capacity=param_1
+                    )
+                    if participations.count() > 0:
+                        participants_data.append({'id': part.id, 'label': part_name})
+            elif param_2 == 'off':
+                for part in parts:
+                    part_name = '%s %s' % (part.user.first_name, part.user.last_name)
                     participants_data.append({'id': part.id, 'label': part_name})
             result = dict()
             result['command'] = command
@@ -280,3 +338,116 @@ class CommandView(LoginRequiredMixin, View):
         else:
             result = {'command': command, 'status': 'error', 'message': 'unknown command'}
         return HttpResponse(json.dumps(result), status=200)
+
+
+class CatalogView(LoginRequiredMixin, TemplateView):
+    template_name = 'catalog/catalog.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(CatalogView, self).get_context_data(**kwargs)
+
+        query_result = dict()
+        query_result['actors'] = Actor.objects.all()
+        query_result['decors'] = Decor.objects.all()
+        query_result['accessories'] = Accessory.objects.all()
+        query_result['locations'] = Location.objects.all()
+        context['query_result'] = query_result
+        return context
+
+    def post(self, request):
+        query_form = dict()
+        query_result = dict()
+
+        if 'check_all' in self.request.POST:
+            query_form['check_all'] = 'on'
+        else:
+            query_form['check_all'] = 'off'
+
+        if 'search_query' in self.request.POST:
+            query = self.request.POST['search_query']
+        else:
+            query = ''
+        query_form['query'] = query
+        print('query received : %s' % query)
+
+        if 'search_actors' in request.POST:
+            query_form['search_actors'] = 'on'
+            if query in ['*', '']:
+                query_result['actors'] = Actor.objects.all()
+            else:
+                query_result['actors'] = Actor.objects.filter(
+                        Q(label__contains=query) |
+                        Q(owner__user__last_name__contains=query) |
+                        Q(owner__user__first_name__contains=query)
+                )
+        else:
+            query_form['search_actors'] = 'off'
+            query_result['actors'] = None
+
+        if 'search_decors' in request.POST:
+            query_form['search_decors'] = 'on'
+            if query in ['*', '']:
+                query_result['decors'] = Decor.objects.all()
+            else:
+                query_result['decors'] = Decor.objects.filter(label__contains=query)
+        else:
+            query_form['search_decors'] = 'off'
+            query_result['decors'] = None
+
+        if 'search_accessories' in request.POST:
+            query_form['search_accessories'] = 'on'
+            if query in ['*', '']:
+                query_result['accessories'] = Accessory.objects.all()
+            else:
+                query_result['accessories'] = Accessory.objects.filter(label__contains=query)
+        else:
+            query_form['search_accessories'] = 'off'
+            query_result['decors'] = None
+
+        if 'search_locations' in request.POST:
+            query_form['search_locations'] = 'on'
+            if query in ['*', '']:
+                query_result['locations'] = Location.objects.all()
+            else:
+                query_result['locations'] = Location.objects.filter(label__contains=query)
+        else:
+            query_form['search_locations'] = 'off'
+            query_result['locations'] = None
+
+        return render(request, self.template_name, {'query_result': query_result, 'query_form': query_form})
+
+
+class CatalogActorView(LoginRequiredMixin, TemplateView):
+    template_name = 'catalog/catalog_actor.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(CatalogActorView, self).get_context_data(**kwargs)
+        context['actor'] = Actor.objects.get(id=kwargs['pk'])
+        return context
+
+
+class CatalogDecorView(LoginRequiredMixin, TemplateView):
+    template_name = 'catalog/catalog_decor.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(CatalogDecorView, self).get_context_data(**kwargs)
+        context['decor'] = Decor.objects.get(id=kwargs['pk'])
+        return context
+
+
+class CatalogAccessoryView(LoginRequiredMixin, TemplateView):
+    template_name = 'catalog/catalog_accessory.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(CatalogAccessoryView, self).get_context_data(**kwargs)
+        context['accessory'] = Accessory.objects.get(id=kwargs['pk'])
+        return context
+
+
+class CatalogLocationView(LoginRequiredMixin, TemplateView):
+    template_name = 'catalog/catalog_location.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(CatalogLocationView, self).get_context_data(**kwargs)
+        context['location'] = Location.objects.get(id=kwargs['pk'])
+        return context

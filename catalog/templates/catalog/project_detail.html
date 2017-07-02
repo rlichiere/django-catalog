@@ -6,119 +6,136 @@
 {% block page-header %}Projet : {{ project.label }}{% endblock %}
 
 {% block page-body %}
-<!-- project_detail body -->
 <div class="row">
-    <div class="col-lg-12">
-        Créé par : <b>{{ project.creator.first_name }} {{ project.creator.last_name }}</b>, le <b>{{ project.created }}</b><br />
-        <br />
-        Statut : <b>{{ project.status }}</b>
-        {% if project.status == "active" %}
-            - (<a href="#" onclick="if (confirm('Confirmer l\'archivage ?')) send_command('project_archive', {{ project.id }}, '');">Archiver</a>)
-        {% elif project.status == "archive" %}
-            - (<a href="#" onclick="if (confirm('Confirmer la réactivation ?')) send_command('project_reactivate', {{ project.id }}, '');">Réactiver</a>)
-        {% endif %}
-        <br /><br />
+    <div class="col-sm-10">
+        <div class="panel panel-default">
+            <div class="panel-header">Informations générales</div>
+            <div class="panel-body">
+                Créé par : <b>{{ project.creator.first_name }} {{ project.creator.last_name }}</b>, le <b>{{ project.created }}</b><br />
+                <br />
+                Statut : <b>{{ project.status }}</b>
+                {% if project.creator == request.user %}
+                    {% if project.status == "active" %}
+                        - (<a href="#" onclick="if (confirm('Confirmer l\'archivage ?')) send_command('project_archive', {{ project.id }}, '');">Archiver</a>)
+                    {% elif project.status == "archive" %}
+                        - (<a href="#" onclick="if (confirm('Confirmer la réactivation ?')) send_command('project_reactivate', {{ project.id }}, '');">Réactiver</a>)
+                    {% endif %}
+                {% endif %}
+                <br /><br />
+            </div>
+        </div>
     </div>
 </div>
-<div class="{% if project.status == 'active' %}col-sm-6{% else %}col-sm-12{% endif %}">Participants :<br />
-    <ul>
-    {% for capacity in project_capacities %}
-        <li><a href="{% url 'capacity' capacity.id %}">{{ capacity.label }}</a><br />
-            <ul>
-            {% for part in participations %}
-                {% if part.capacity.name == capacity.name %}
-                    {% if part.owner_validation and part.participant_validation %}
-                        <li>
-                            <a href="{% url 'participant' part.participant.id %}">{{ part.participant }}</a>
-                             - (<a href="#" onclick="if (confirm('Confirmer la suppression ?')) send_command('participation_proposition_remove', {{ part.id }}, '');">Supprimer</a>)
-                        </li>
-                    {% endif %}
-                {% endif %}
-            {% endfor %}
-            {% for part in participations %}
-                {% if part.capacity.name == capacity.name %}
-                    {% if not part.owner_validation and part.participant_validation %}
-                        <li>
-                            <a href="{% url 'participant' part.participant.id %}">{{ part.participant }}</a>
-                            {% if part.project.creator == request.user %}
-                                - (<a href="#" onclick="if (confirm('Confirmer la validation ?')) send_command('participation_proposition_validated', {{ part.id }}, '');">Valider</a>
-                                 /
-                                <a href="#" onclick="if (confirm('Confirmer le refus ?')) send_command('participation_proposition_denied', {{ part.id }}, '');">Refuser</a>)
-                            {% else %}
-                                - Se propose
+<div class="row">
+    <div class="col-sm-5">
+        <div class="panel panel-default">
+            <div class="panel-header">Participants</div>
+            <div class="panel-body">
+                <ul>
+                {% for capacity in project_capacities %}
+                    <li><a href="{% url 'capacity' capacity.id %}">{{ capacity.label }}</a><br />
+                        <ul>
+                        {% for part in participations %}
+                            {% if part.capacity.name == capacity.name %}
+                                {% if part.owner_validation and part.participant_validation %}
+                                    <li>
+                                        <a href="{% url 'participant' part.participant.id %}">{{ part.participant }}</a>
+                                        {% if project.status == "active" and project.creator == request.user %}
+                                         - (<a href="#" onclick="if (confirm('Confirmer la suppression ?')) send_command('participation_proposition_remove', {{ part.id }}, '');">Supprimer</a>)
+                                        {% endif %}
+                                    </li>
+                                {% endif %}
                             {% endif %}
-                        </li>
-                    {% endif %}
-                {% endif %}
-            {% endfor %}
-            {% for part in participations %}
-                {% if part.capacity.name == capacity.name %}
-                    {% if part.owner_validation and not part.participant_validation %}
-                        <li>
-                            <a href="{% url 'participant' part.participant.id %}">{{ part.participant }}</a>
-                            {% if project.creator == request.user %}
-                             - (<a href="#" onclick="if (confirm('Confirmer l\'annulation ?')) send_command('participation_proposition_denied', {{ part.id }}, '');">Annuler</a>)
-                            {% else %}
-                             - Invité
-                            {% endif %}
-                        </li>
-                    {% endif %}
-                {% endif %}
-            {% endfor %}
-            </ul>
-        </li>
-    {% endfor %}
-    </ul>
-</div>
-{% if project.status == 'active' %}
-<div class="col-sm-6">
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="row">
-                <div class="col-sm-12">Postuler en tant que
-                    <select id="capacity_id">
-                        <option value="">------</option>
-                        {% for capacity in capacities %}
-                            <option value="{{ capacity.id }}">{{ capacity.label }}</option>
                         {% endfor %}
+                        {% for part in participations %}
+                            {% if part.capacity.name == capacity.name %}
+                                {% if not part.owner_validation and part.participant_validation %}
+                                    <li>
+                                        <a href="{% url 'participant' part.participant.id %}">{{ part.participant }}</a>
+                                        {% if part.project.creator == request.user and part.project.status != 'archive' %}
+                                            - (<a href="#" onclick="if (confirm('Confirmer la validation ?')) send_command('participation_proposition_validated', {{ part.id }}, '');">Valider</a>
+                                             /
+                                            <a href="#" onclick="if (confirm('Confirmer le refus ?')) send_command('participation_proposition_denied', {{ part.id }}, '');">Refuser</a>)
+                                        {% else %}
+                                            - Se propose
+                                        {% endif %}
+                                    </li>
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                        {% for part in participations %}
+                            {% if part.capacity.name == capacity.name %}
+                                {% if part.owner_validation and not part.participant_validation %}
+                                    <li>
+                                        <a href="{% url 'participant' part.participant.id %}">{{ part.participant }}</a>
+                                        {% if project.creator == request.user and project.status != 'archive' %}
+                                         - (<a href="#" onclick="if (confirm('Confirmer l\'annulation ?')) send_command('participation_proposition_denied', {{ part.id }}, '');">Annuler</a>)
+                                        {% else %}
+                                         - Invité
+                                        {% endif %}
+                                    </li>
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                        </ul>
+                    </li>
+                {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    {% if project.status == 'active' %}
+    <div class="col-sm-5">
+        <div class="col-sm-12">
+            <div class="panel panel-default">
+                <div class="panel-header">Postuler en tant que</div>
+                <div class="panel-body">
+                    <select id="capacity_id">
+                    <option value="">------</option>
+                    {% for capacity in capacities %}
+                        <option value="{{ capacity.id }}">{{ capacity.label }}</option>
+                    {% endfor %}
                     </select>
                     <a href="#" onclick="postulate({{ project.id }});">
-                        Postuler
+                    Postuler
                     </a>
                 </div>
             </div>
             {% if project.creator == request.user %}
-            <br />
-            <div class="row">
-                <div class="col-sm-12">Inviter en tant que
-                    <select id="invite_capacity_id" onchange="reload_participants_by_capacity();">
+            <div class="panel panel-default">
+                <div class="panel-header">Inviter en tant que</div>
+                <div class="panel-body">
+                    <div class="col-sm-6">
+                        <select id="invite_capacity_id" onchange="reload_participants_by_capacity(current_selected_filter);">
                         <option value="">------</option>
                         {% for capacity in capacities %}
                             <option value="{{ capacity.id }}">{{ capacity.label }}</option>
                         {% endfor %}
-                    </select>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-12">Filtrer selon les capacités
-                    <input id="limit_to_participants_capacities" type="checkbox" onchange="reload_participants_by_capacity();"/>
-                    <select id="invite_participant_id">
-                        <option value="">------</option>
-                        {% for participant in participants %}
-                            <option value="{{ participant.id }}">{{ participant }}</option>
-                        {% endfor %}
-                    </select>
-                    <a href="#" onclick="invite({{ project.id }});">
-                        Inviter
-                    </a>
+                        </select>
+                        <br />
+                        Filtrer selon les capacités :<br />
+                        <input type="radio" name="limit_to_participants_capacities" onclick="reload_participants_by_capacity(this);" value="off" id="limit_to_participants_capacities_filter_off" checked/> Non<br />
+                        <input type="radio" name="limit_to_participants_capacities" onclick="reload_participants_by_capacity(this);" value="selected" /> Affichées<br />
+                        <input type="radio" name="limit_to_participants_capacities" onclick="reload_participants_by_capacity(this);" value="effective" /> Effectives<br />
+                    </div>
+                    <div class="col-sm-6">
+                        <select id="invite_participant_id">
+                            <option value="">------</option>
+                            {% for participant in participants %}
+                                <option value="{{ participant.id }}">{{ participant }}</option>
+                            {% endfor %}
+                        </select>
+                        <a href="#" onclick="invite({{ project.id }});">
+                            Inviter
+                        </a>
+                    </div>
                 </div>
             </div>
             {% endif %}
         </div>
     </div>
+    {% endif %}
 </div>
-{% endif %}
-
 <script>
     function postulate(project_id) {
         var capacity_id = document.getElementById('capacity_id').value;
@@ -133,10 +150,18 @@
             send_command('participation_invitation', project_id, capacity_id, part_id);
         }
     }
-    function reload_participants_by_capacity() {
-        capacity_id = document.getElementById('invite_capacity_id').value;
-        limit_capacity = document.getElementById('limit_to_participants_capacities').checked ? 'on' : 'off';
-        retrieve_data('participants_by_capacity', on_participants_by_capacity_reloaded, capacity_id, limit_capacity);
+    var current_selected_filter = document.getElementById('limit_to_participants_capacities_filter_off');
+    function reload_participants_by_capacity(selected_filter) {
+        if (document.getElementById('invite_capacity_id').value == '') {
+            console.log('no capacity selected');
+        } else {
+            current_selected_filter = selected_filter;
+            console.log('reload_participants_by_capacity');
+            capacity_id = document.getElementById('invite_capacity_id').value;
+            limit_capacity = selected_filter.value;
+            console.log('reload_participants_by_capacity: limit_capacity = ' + limit_capacity);
+            retrieve_data('participants_by_capacity', on_participants_by_capacity_reloaded, capacity_id, limit_capacity);
+        }
     }
     function on_participants_by_capacity_reloaded(data) {
         var json_data = JSON.parse(data).data;
@@ -144,14 +169,21 @@
         while (elem_select.hasChildNodes()) {
             elem_select.removeChild(elem_select.firstChild);
         }
-        for (var key in json_data) {
-            var option = json_data[key];
-            var elem_opt = document.createElement('OPTION');
-            elem_opt.setAttribute('value', option.id);
-            elem_opt.innerHTML = option.label;
+        var elem_opt;
+        if (json_data.length == 0) {
+            elem_opt = document.createElement('OPTION');
+            elem_opt.setAttribute('value', '');
+            elem_opt.innerHTML = '------';
             elem_select.appendChild(elem_opt);
+        } else {
+            for (var key in json_data) {
+                var option = json_data[key];
+                elem_opt = document.createElement('OPTION');
+                elem_opt.setAttribute('value', option.id);
+                elem_opt.innerHTML = option.label;
+                elem_select.appendChild(elem_opt);
+            }
         }
     }
 </script>
-<!-- /project_detail body -->
 {% endblock %}
