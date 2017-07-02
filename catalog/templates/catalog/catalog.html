@@ -1,0 +1,114 @@
+{% extends 'catalog/base.html' %}
+{% load staticfiles %}
+{% load i18n static %}
+
+{% block title %}Catalog{% endblock %}
+{% block page-header %}Catalog{% endblock %}
+
+{% block page-body %}
+
+<script>
+    function checkbox_all_clicked(checkbox) {
+        if (checkbox.checked) {
+            document.getElementsByName('search_actors').item(0).checked = true;
+            document.getElementsByName('search_decors').item(0).checked = true;
+            document.getElementsByName('search_accessories').item(0).checked = true;
+            document.getElementsByName('search_locations').item(0).checked = true;
+        } else {
+            document.getElementsByName('search_actors').item(0).checked = false;
+            document.getElementsByName('search_decors').item(0).checked = false;
+            document.getElementsByName('search_accessories').item(0).checked = false;
+            document.getElementsByName('search_locations').item(0).checked = false;
+        }
+    }
+</script>
+<form action="{% url 'catalog' %}" method="post">
+    <div class="row">
+        <div class="col-sm-3">
+            {% csrf_token %}
+            Recherche : <input type="text" name="search_query" title="search" value="{{ query_form.query }}"/><br />
+            <br />
+            <input type="submit" value="Chercher"/>
+        </div>
+        <div class="col-sm-2">
+        <input type="checkbox" name="search_actors" value="actor" {% if query_form.search_actors != 'off' %}checked{% endif %}> Acteurs<br />
+        <input type="checkbox" name="search_decors" value="decor" {% if query_form.search_decors != 'off' %}checked{% endif %}> Décors<br />
+        <input type="checkbox" name="search_accessories" value="decor" {% if query_form.search_accessories != 'off' %}checked{% endif %}> Accessoires<br />
+        <input type="checkbox" name="search_locations" value="location" {% if query_form.search_locations != 'off' %}checked{% endif %}> Localisations<br />
+        <input type="checkbox" name="check_all" value="" {% if query_form.check_all != 'off' %}checked{% endif %} onclick="checkbox_all_clicked(this);"> Tout<br />
+        </div>
+    </div>
+    <br />
+</form>
+
+
+    {% if query_form.search_actors != 'off' %}
+    <div class="col-sm-3">
+        Acteurs :<br /><br />
+        <ul>
+        {% for actor in query_result.actors %}
+            <li>
+                <a href="{% url 'actor' actor.id %}">{{ actor }}</a>
+            </li>
+        {% empty %}
+            Pas d'acteurs.
+        {% endfor %}
+        </ul>
+        <br />
+    </div>
+    {% endif %}
+    {% if query_form.search_decors != 'off' %}
+    <div class="col-sm-3">
+        Décors :<br /><br />
+        <ul>
+        {% for decor in query_result.decors %}
+            <li>
+                <a href="{% url 'decor' decor.id %}">{{ decor }}</a>
+            </li>
+        {% empty %}
+            Pas de décors.
+        {% endfor %}
+        </ul>
+        <br />
+    </div>
+    {% endif %}
+    {% if query_form.search_accessories != 'off' %}
+    <div class="col-sm-3">
+        Accessoires :<br /><br />
+        <ul>
+        {% for accessory in query_result.accessories %}
+            <li>
+                <a href="{% url 'accessory' accessory.id %}">{{ accessory }}</a>
+            </li>
+        {% empty %}
+            Pas d'accessoires.
+        {% endfor %}
+        </ul>
+        <br />
+    </div>
+    {% endif %}
+    {% if query_form.search_locations != 'off' %}
+    <div class="col-sm-3">
+        Localisations :<br /><br />
+        <ul>
+        {% for location in query_result.locations %}
+            <li>
+                <a href="{% url 'location' location.id %}">{{ location }}</a>
+            </li>
+        {% empty %}
+            Pas de localisations.
+        {% endfor %}
+        </ul>
+        <br />
+    </div>
+    {% endif %}
+
+{% endblock %}
+
+{% block extra_script %}
+<script>
+    $(document).ready(function(){
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
+{% endblock %}

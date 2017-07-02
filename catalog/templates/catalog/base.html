@@ -55,7 +55,7 @@
                                     <a href="{% url 'projects' %}">Projets</a>
                                 </li>
                                 <li>
-                                    <a href="{% url 'index' %}">Catalogue</a>
+                                    <a href="{% url 'catalog' %}">Catalogue</a>
                                 </li>
                                 <li>
                                     <a href="{% url 'my' %}">My</a>
@@ -79,20 +79,15 @@
                 <h1 class="page-header">{% block page-header %}{% endblock %}</h1>
             </div>
         </div>
-        {% if title %}
         <div class="row">
-            <div class="col-sm-12">
-                {{ title }}
-            </div>
-        </div>
-        {% endif %}
         {% block page-body %}
         {% endblock %}
+        </div>
     </div>
 </div>
 
 <!-- jQuery -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
 <!-- Bootstrap Core JavaScript -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>

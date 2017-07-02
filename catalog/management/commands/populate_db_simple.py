@@ -69,7 +69,7 @@ participations = [
 ''' objects data'''
 locations = [
     {'label': 'Location 1', 'country': 'France', 'city': 'Avignon', 'postal_code': '84000',
-     'gps_lat': '43.9464131', 'gps_lon': '4.8049007'},
+     'gps_lat': '43.9463426', 'gps_lon': '4.8047136'},
     {'label': 'Location 2', 'country': 'France', 'city': 'Avignon', 'postal_code': '84000',
      'gps_lat': '43.9297905', 'gps_lon': '4.8369791'},
 ]
@@ -202,7 +202,7 @@ class Command(BaseCommand):
             print('\nDECORS')
             for obj in decors:
                 owner = Participant.objects.get(user__username=obj['owner'])
-                decor = Decor(label=obj['label'], owner=owner)
+                decor = Decor(type='Decor', label=obj['label'], owner=owner)
                 decor.save()
                 self.transaction['decors'].append(decor)
                 print('decor: %s' % decor.label)
@@ -210,7 +210,7 @@ class Command(BaseCommand):
             print('\nACTORS')
             for obj in actors:
                 owner = Participant.objects.get(user__username=obj['owner'])
-                actor = Actor(label='', owner=owner)
+                actor = Actor(type='Actor', label=owner.user.get_full_name(), owner=owner, created=datetime.now())
                 actor.save()
                 self.transaction['actors'].append(actor)
                 print('actor: %s' % actor.owner)
@@ -218,7 +218,7 @@ class Command(BaseCommand):
             print('\nACCESSORIES')
             for obj in accessories:
                 owner = Participant.objects.get(user__username=obj['owner'])
-                accessory = Accessory(label=obj['label'], owner=owner)
+                accessory = Accessory(type='Accessory', label=obj['label'], owner=owner)
                 accessory.save()
                 self.transaction['accessories'].append(accessory)
                 print('accessory: %s' % accessory.label)

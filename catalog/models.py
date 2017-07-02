@@ -90,18 +90,21 @@ class Object(models.Model):
     created = models.DateField(null=True)
     location = models.ForeignKey(Location, null=True)
     photos = models.ManyToManyField(Image)
+    type = models.CharField(max_length=50)
 
     def __unicode__(self):
         return '%s' % self.label
 
 
 class Decor(Object):
+    type = 'Decor'
 
     def __unicode__(self):
         return '%s' % self.label
 
 
 class Actor(Object):
+    type = 'Actor'
 
     def __unicode__(self):
         return '%s' % self.label
@@ -109,6 +112,7 @@ class Actor(Object):
 
 class Accessory(Object):
     category = models.ManyToManyField(AccessoryCategory)
+    type = 'Accessory'
 
     def __unicode__(self):
         return '%s' % self.label
