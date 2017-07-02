@@ -1,0 +1,18 @@
+{% extends 'catalog/catalog.html' %}
+{% load staticfiles %}
+{% load i18n static %}
+
+{% block title %}Accessoire : {{ accessory.label }}{% endblock %}
+{% block page-header %}Accessoire : {{ accessory.label }}{% endblock %}
+
+{% block page-body %}
+
+{% include 'catalog/catalog_object.html' with object=accessory%}
+<br />
+<div class="row">
+    <div class="col-sm-4">
+
+    </div>
+</div>
+
+{% endblock %}

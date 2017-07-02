@@ -1,0 +1,13 @@
+
+<div class="row">
+    <div class="col-sm-12">
+        Label : {{ object.label }}<br />
+        Créateur : {{ object.owner }}<br />
+        Créé le : {{ object.created }}<br />
+        Localisation : <a href="#" id="location" data-toggle="tooltip" data-html="true" data-trigger="click"
+           title="Ville : {{ location.city }}<br />Code postal : {{ location.postal_code }}"
+        >{{ object.location }}</a>
+        <br />
+        Photos : {%  if object.photos|length > 0 %}{{ object.photos }}{% else %}Pas de photos.{% endif %}<br />
+    </div>
+</div>

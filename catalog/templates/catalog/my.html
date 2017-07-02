@@ -6,7 +6,7 @@
 {% block page-header %}My{% endblock %}
 
 {% block page-body %}
-<!-- my body -->
+
 <div class="row">
     <div class="col-sm-5">
         Projets créés :<br /><br />
@@ -104,5 +104,16 @@
         {% endfor %}
     </div>
 </div>
-<!-- /index body -->
+
+<div class="row">
+    <div class="col-sm-9">
+        Catalogue :<br /><br />
+        <ul>Mes objets :
+        {% for object in my_objects %}
+            <li><a href="#">{{ object.label }}</a> ({{ object.type }})</li>
+        {% endfor %}
+        </ul>
+    </div>
+</div>
+
 {% endblock %}

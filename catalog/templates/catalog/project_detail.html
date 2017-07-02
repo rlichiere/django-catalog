@@ -12,10 +12,12 @@
         Créé par : <b>{{ project.creator.first_name }} {{ project.creator.last_name }}</b>, le <b>{{ project.created }}</b><br />
         <br />
         Statut : <b>{{ project.status }}</b>
-        {% if project.status == "active" %}
-            - (<a href="#" onclick="if (confirm('Confirmer l\'archivage ?')) send_command('project_archive', {{ project.id }}, '');">Archiver</a>)
-        {% elif project.status == "archive" %}
-            - (<a href="#" onclick="if (confirm('Confirmer la réactivation ?')) send_command('project_reactivate', {{ project.id }}, '');">Réactiver</a>)
+        {% if project.creator == request.user %}
+            {% if project.status == "active" %}
+                - (<a href="#" onclick="if (confirm('Confirmer l\'archivage ?')) send_command('project_archive', {{ project.id }}, '');">Archiver</a>)
+            {% elif project.status == "archive" %}
+                - (<a href="#" onclick="if (confirm('Confirmer la réactivation ?')) send_command('project_reactivate', {{ project.id }}, '');">Réactiver</a>)
+            {% endif %}
         {% endif %}
         <br /><br />
     </div>
@@ -30,7 +32,9 @@
                     {% if part.owner_validation and part.participant_validation %}
                         <li>
                             <a href="{% url 'participant' part.participant.id %}">{{ part.participant }}</a>
+                            {% if project.status == "active" and project.creator == request.user %}
                              - (<a href="#" onclick="if (confirm('Confirmer la suppression ?')) send_command('participation_proposition_remove', {{ part.id }}, '');">Supprimer</a>)
+                            {% endif %}
                         </li>
                     {% endif %}
                 {% endif %}
