@@ -20,17 +20,25 @@
 <div class="row">
 <div class="col-lg-3 col-sm-6">
     <div class="panel panel-default">
-        <div class="panel-header">Capacités : {{ capacities|length }}</div>
+        <div class="panel-header">Capacités :</div>
         <div class="panel-body">
-            <ul>Affichées :
-                {% for capacity in capacities %}
-                    <li><a href="{% url 'capacity' capacity.id %}">{{ capacity.label }}</a></li>
-                {% endfor %}
+            <ul>Sélectionnées : {{ capacities_selected|length }}
+            {% for capacity in capacities_selected %}
+                <li><a href="{% url 'capacity' capacity.id %}">{{ capacity.label }}</a></li>
+            {% endfor %}
             </ul>
             <ul>Effectives :
-                {% for capacity in capacities %}
-                    <li><a href="{% url 'capacity' capacity.id %}">{{ capacity.label }}</a></li>
-                {% endfor %}
+            {% for capacity in capacities_effective %}
+                <li><a href="{% url 'capacity' capacity.id %}">{{ capacity.label }}</a>
+                    <ul>
+                    {% for part in participations_effective %}
+                    {% if part.capacity == capacity %}
+                        <li><a href="{% url 'project' part.project.id %}">{{ part.project.label }}</a></li>
+                    {% endif %}
+                    {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
             </ul>
         </div>
     </div>

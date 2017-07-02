@@ -61,8 +61,8 @@ class ParticipantDetailView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         request = self.request
         participant = Participant.objects.get(id=self.kwargs['pk'])
-        capacities = participant.capacities.all()
-        print('capacities=%s' % capacities)
+        capacities_selected = participant.capacities.all()
+        print('capacities=%s' % capacities_selected)
         if participant is not None:
             parts = Participation.objects.filter(participant=participant.id)\
                 .order_by('capacity__label', 'participant__user__first_name', 'participant__user__last_name')
@@ -74,11 +74,14 @@ class ParticipantDetailView(LoginRequiredMixin, TemplateView):
             parts_effective = list()
             parts_invitations = list()
             parts_propositions = list()
+            capacities_effective = list()
             for part in parts:
                 if part.owner_validation and part.participant_validation:
                     if part.project not in projects_parts['effective']:
                         projects_parts['effective'].append(part.project)
                         parts_effective.append(part)
+                        if not part.capacity in capacities_effective:
+                            capacities_effective.append(part.capacity)
                 if part.owner_validation and not part.participant_validation:
                     if part.project not in projects_parts['invitations']:
                         projects_parts['invitations'].append(part.project)
@@ -91,7 +94,8 @@ class ParticipantDetailView(LoginRequiredMixin, TemplateView):
             result = dict()
             result['request'] = request
             result['participant'] = participant
-            result['capacities'] = capacities
+            result['capacities_selected'] = capacities_selected
+            result['capacities_effective'] = capacities_effective
             result['projects'] = projects
             result['participations'] = parts
             result['projects_participations'] = projects_parts
